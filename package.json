@@ -1,0 +1,13 @@
+{
+  "name": "boardstack",
+  "private": true,
+  "workspaces": [
+    "boardstack-api",
+    "boardstack-web",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "npm run dev -w boardstack-api",
+    "dev:web": "npm run dev -w boardstack-web"
+  }
+}
