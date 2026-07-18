@@ -1,6 +1,4 @@
 // This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
-
 // Get a free hosted Postgres database in seconds: `npx create-db`
 
 generator client {
@@ -10,4 +8,48 @@ generator client {
 
 datasource db {
   provider = "postgresql"
+}
+
+model Organization {
+  id          String       @id @default(uuid()) @db.Uuid
+  auth0OrgId  String       @unique @map("auth0_org_id")
+  name        String
+  slug        String       @unique
+  createdAt   DateTime     @default(now()) @map("created_at")
+  memberships Membership[]
+  projects    Project[]
+  @@map("organization")
+}
+
+model AppUser {
+  id          String       @id @default(uuid()) @db.Uuid
+  auth0UserId String       @unique @map("auth0_user_id")
+  email       String
+  name        String?
+  createdAt   DateTime     @default(now()) @map("created_at")
+  memberships Membership[]
+  @@map("app_user")
+}
+
+model Membership {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  userId         String       @map("user_id") @db.Uuid
+  role           String
+  createdAt      DateTime     @default(now()) @map("created_at")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user           AppUser      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@unique([organizationId, userId])
+  @@map("membership")
+}
+
+model Project {
+  id             String       @id @default(uuid()) @db.Uuid
+  organizationId String       @map("organization_id") @db.Uuid
+  key            String
+  name           String
+  createdAt      DateTime     @default(now()) @map("created_at")
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  @@unique([organizationId, key])
+  @@map("project")
 }
