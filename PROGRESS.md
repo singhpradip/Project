@@ -4,9 +4,9 @@
 
 | | |
 |---|---|
-| **Overall status** | 🟡 Planning complete — ready to start Phase 1 |
-| **Current phase** | Phase 0 → Phase 1 |
-| **Last updated** | 2026-07-17 |
+| **Overall status** | 🟢 Phase 1 in progress — foundations & RLS working |
+| **Current phase** | Phase 1 (70%) |
+| **Last updated** | 2026-07-18 |
 
 ---
 
@@ -26,7 +26,7 @@
 | Phase | Title | Status | % |
 |---|---|---|---|
 | 0 | Planning & docs | ✅ Done | 100% |
-| 1 | Foundations & tenancy | ⬜ Not started | 0% |
+| 1 | Foundations & tenancy | 🟡 In progress | 70% |
 | 2 | Orgs, members & RBAC | ⬜ Not started | 0% |
 | 3 | Projects & issues | ⬜ Not started | 0% |
 | 4 | Kanban board | ⬜ Not started | 0% |
@@ -57,21 +57,21 @@
 
 **Goal:** a runnable skeleton with auth, the tenant DB context, and RLS proven to work.
 
-- [ ] Monorepo scaffold (`boardstack-api`, `boardstack-web`, `packages/shared`) + workspaces
-- [ ] `docker-compose.yml` (Postgres + api + web) + `.env.example` for each app
-- [ ] Express app bootstrap (health endpoint, error envelope, request-id logger)
-- [ ] Prisma init + connect to Postgres; base `schema.prisma`
+- [x] Monorepo scaffold (`boardstack-api`, `boardstack-web`, `packages/shared`) + workspaces
+- [x] `docker-compose.yml` (Postgres on host 5433) + `.env` / `.env.example`
+- [x] Express app bootstrap (health endpoint)
+- [x] Prisma init + connect to Postgres; base `schema.prisma` (4 core models)
 - [ ] Auth0 tenant setup: application, API, Organizations enabled, roles/permissions defined
 - [ ] `authenticate` middleware — verify Auth0 JWT via JWKS
 - [ ] `resolveTenant` middleware — map `org_id` ↔ subdomain, load membership
-- [ ] `withTenantDb` middleware — open txn + `SET LOCAL app.current_org`
-- [ ] RLS scaffolding: raw-SQL migration enabling + forcing RLS + `tenant_isolation` policy on a first table
-- [ ] Non-superuser API DB role (no `BYPASSRLS`)
-- [ ] Next.js app scaffold (App Router) + Tailwind + shadcn/ui init
+- [x] `withTenantDb` middleware — open txn + `SET LOCAL app.current_org`
+- [x] RLS scaffolding: raw-SQL migration enabling + forcing RLS + `tenant_isolation` policy
+- [x] Non-superuser API DB role (`boardstack_app`, no `BYPASSRLS`)
+- [x] Next.js app scaffold (App Router) + Tailwind + shadcn/ui init
 - [ ] Auth0 Next.js SDK wired: login, callback, logout, session cookie
 - [ ] Subdomain middleware on the web app
-- [ ] React Query provider + base API client (attaches Bearer token)
-- [ ] **RLS isolation integration test (Testcontainers): cross-tenant read/write blocked**
+- [x] React Query provider (`providers.tsx`)
+- [x] **RLS isolation integration test (Vitest + `pg`): cross-tenant read/write/update blocked** ✅
 - [ ] CI pipeline: `tsc --noEmit` + `lint` + `test`
 
 **Exit criteria:** `docker compose up` runs all three services; a user can log in via Auth0; the cross-tenant isolation test passes in CI.
@@ -219,6 +219,9 @@ Real-time (WebSockets) · billing (Stripe) · custom fields & workflow engine ·
 |---|---|
 | 2026-07-17 | Planning complete (Phase 0). Tracker created. |
 | 2026-07-17 | Added `SETUP.md` — install/setup flow from official Node/Express/Prisma/Postgres/Next.js/shadcn docs. |
+| 2026-07-18 | Renamed project to **Boardstack**. |
+| 2026-07-18 | Built the stack by hand (`LEARN.md`): monorepo, Docker Postgres (5433), Prisma + migrations + RLS, Express API, Next.js + shadcn. |
+| 2026-07-18 | ✅ RLS cross-tenant isolation test passing (4/4). Core security invariant proven. |
 
 ---
 
