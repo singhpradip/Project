@@ -1,0 +1,12 @@
+{
+  "name": "taskflow",
+  "private": true,
+  "workspaces": ["taskflow-api", "taskflow-web", "packages/*"],
+  "scripts": {
+    "dev": "docker compose up",
+    "dev:api": "npm run dev -w taskflow-api",
+    "dev:web": "npm run dev -w taskflow-web",
+    "typecheck": "npm run typecheck -w taskflow-api && npm run typecheck -w taskflow-web",
+    "lint": "npm run lint -w taskflow-web && npm run lint -w taskflow-api"
+  }
+}
