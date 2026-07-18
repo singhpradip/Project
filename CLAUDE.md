@@ -10,6 +10,7 @@ Always consult these before non-trivial work; they are the source of truth:
 - **`boardstack-data-model.md`** — full entity catalog with attributes/constraints, relationships, entity interactions, user data flows, and state machines.
 - **`requirements.md`** — end-to-end functional (`FR-*`) and non-functional (`NFR-*`) requirements with acceptance criteria.
 - **`SETUP.md`** — installation & project setup flow (monorepo, Docker Postgres, Express 5, Prisma, Next.js, shadcn/ui) built from the official docs.
+- **`LEARN.md`** — hands-on, annotated build guide: rebuild every piece by hand with what/why/verify explanations, concept deep-dives, and troubleshooting.
 - **`PROGRESS.md`** — the project task tracker: phases, tasks, current status, and exit criteria.
 
 ## Task tracking — keep `PROGRESS.md` current

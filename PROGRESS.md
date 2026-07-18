@@ -46,6 +46,7 @@
 - [x] Requirements spec (`requirements.md`)
 - [x] Repo guidance (`CLAUDE.md`)
 - [x] Installation & setup flow (`SETUP.md`, from official docs)
+- [x] Hands-on learning guide (`LEARN.md`, rebuild-by-hand with explanations)
 - [x] Progress tracker (this file)
 
 **Exit criteria:** all planning docs reviewed and agreed. ✅
