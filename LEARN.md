@@ -703,6 +703,10 @@ npx shadcn@latest add <name>   # add a UI component
 
 **`prisma migrate dev` says "Already in sync, no schema change"** — your models weren't actually saved to `schema.prisma`, so there's nothing to migrate. Re-check the file has your `model` blocks, then re-run.
 
+**`P3006 / P3018 ... role "boardstack_app" does not exist`** — the RLS migration's `GRANT` lines reference the app role, but it was never created (or `docker compose down -v` wiped the volume, which deletes all cluster roles). Recreate it (§4 `CREATE ROLE boardstack_app ...`), then `npx prisma migrate dev`. If the migration is stuck in a failed state, run `npx prisma migrate resolve --rolled-back <migration_name>` first. Note: Postgres roles are **cluster-global**, so creating the role once also fixes Prisma's shadow database.
+
+**Same error persists even though `docker exec ... CREATE ROLE` says the role "already exists"** — you have **another Postgres already on port 5432**, so `docker exec` (which enters the container directly) and Prisma (which uses the host port) are hitting *different* servers. Check with `docker ps --format '{{.Names}}\t{{.Ports}}'`: if `boardstack-db` shows only `5432/tcp` (no `0.0.0.0:5432->`) and a different container owns `0.0.0.0:5432->5432`, that's the clash. Fix: give Boardstack its own host port — set `ports: ["5433:5432"]` in `docker-compose.yml`, change both `.env` URLs to `localhost:5433`, then `docker rm -f boardstack-db && docker compose up -d db`, recreate the role, and `npx prisma migrate reset`.
+
 **`npm warn workspaces ... no workspace folder present`** — harmless; appears if you run an npm command referencing a workspace a moment before it exists. Ignore.
 
 **Web can't import `@boardstack/shared`** — run `npm install` at the repo root (not inside a package) so workspaces get linked (§9).
