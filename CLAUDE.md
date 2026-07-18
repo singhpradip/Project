@@ -11,6 +11,7 @@ Always consult these before non-trivial work; they are the source of truth:
 - **`requirements.md`** — end-to-end functional (`FR-*`) and non-functional (`NFR-*`) requirements with acceptance criteria.
 - **`SETUP.md`** — installation & project setup flow (monorepo, Docker Postgres, Express 5, Prisma, Next.js, shadcn/ui) built from the official docs.
 - **`LEARN.md`** — hands-on, annotated build guide: rebuild every piece by hand with what/why/verify explanations, concept deep-dives, and troubleshooting.
+- **`AUTH0.md`** — Auth0 setup guide: dashboard config, Next.js v4 SDK (`proxy.ts`), and the backend `authenticate`/`resolveTenant`/`authorize` middleware.
 - **`PROGRESS.md`** — the project task tracker: phases, tasks, current status, and exit criteria.
 
 ## Task tracking — keep `PROGRESS.md` current

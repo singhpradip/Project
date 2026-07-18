@@ -61,9 +61,9 @@
 - [x] `docker-compose.yml` (Postgres on host 5433) + `.env` / `.env.example`
 - [x] Express app bootstrap (health endpoint)
 - [x] Prisma init + connect to Postgres; base `schema.prisma` (4 core models)
-- [ ] Auth0 tenant setup: application, API, Organizations enabled, roles/permissions defined
-- [ ] `authenticate` middleware — verify Auth0 JWT via JWKS
-- [ ] `resolveTenant` middleware — map `org_id` ↔ subdomain, load membership
+- [x] Auth0 tenant setup: application, API (audience), Organizations enabled, roles/permissions defined
+- [x] `authenticate` middleware — verify Auth0 JWT via JWKS (`express-oauth2-jwt-bearer`)
+- [x] `resolveTenant` middleware — map `org_id` → org, JIT-provision user + membership
 - [x] `withTenantDb` middleware — open txn + `SET LOCAL app.current_org`
 - [x] RLS scaffolding: raw-SQL migration enabling + forcing RLS + `tenant_isolation` policy
 - [x] Non-superuser API DB role (`boardstack_app`, no `BYPASSRLS`)
@@ -222,6 +222,8 @@ Real-time (WebSockets) · billing (Stripe) · custom fields & workflow engine ·
 | 2026-07-18 | Renamed project to **Boardstack**. |
 | 2026-07-18 | Built the stack by hand (`LEARN.md`): monorepo, Docker Postgres (5433), Prisma + migrations + RLS, Express API, Next.js + shadcn. |
 | 2026-07-18 | ✅ RLS cross-tenant isolation test passing (4/4). Core security invariant proven. |
+| 2026-07-18 | Added `AUTH0.md` — Auth0 setup guide (v4 SDK, Next 16 `proxy.ts`, backend JWT validation + tenant middleware). |
+| 2026-07-18 | ✅ End-to-end auth working: Auth0 login (Organizations) → org-scoped JWT → authenticate → resolveTenant (JIT user+membership) → withTenant RLS query → project rendered in UI. |
 
 ---
 
