@@ -1,6 +1,6 @@
-# TaskFlow — Requirements Specification
+# Boardstack — Requirements Specification
 
-**End-to-end functional and non-functional requirements. Companion to `taskflow-system-design.md` and `taskflow-data-model.md`.**
+**End-to-end functional and non-functional requirements. Companion to `boardstack-system-design.md` and `boardstack-data-model.md`.**
 
 | | |
 |---|---|
@@ -12,7 +12,7 @@
 
 ## 1. Purpose & scope
 
-TaskFlow is a multi-tenant B2B SaaS for project & task management (Jira/Linear-lite). This document defines **what** the system must do (functional requirements as epics → user stories → acceptance criteria) and **how well** it must do it (non-functional requirements), plus constraints and explicit out-of-scope items.
+Boardstack is a multi-tenant B2B SaaS for project & task management (Jira/Linear-lite). This document defines **what** the system must do (functional requirements as epics → user stories → acceptance criteria) and **how well** it must do it (non-functional requirements), plus constraints and explicit out-of-scope items.
 
 Requirement IDs: functional `FR-*`, non-functional `NFR-*`. Acceptance criteria use Given/When/Then.
 
@@ -242,7 +242,7 @@ Requirement IDs: functional `FR-*`, non-functional `NFR-*`. Acceptance criteria 
 
 - **Fixed stack** (do not substitute without agreement): Next.js (App Router), React, TS, Tailwind, shadcn/ui, React Hook Form, React Query, Zustand, Zod, Node/Express, PostgreSQL, Prisma, Auth0, Docker.
 - Two separate deployables (Express API + Next.js web) in one monorepo with a shared package.
-- Tenant resolution via subdomain (`slug.taskflow.com`).
+- Tenant resolution via subdomain (`slug.boardstack.com`).
 - Single Postgres database, shared schema, RLS for isolation.
 - Assumes Auth0 free/dev tier is sufficient for the demo.
 

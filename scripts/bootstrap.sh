@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# TaskFlow — automated project bootstrap
+# Boardstack — automated project bootstrap
 # Runs the OFFICIAL scaffolding CLIs for each tool in order, non-interactively.
 # Idempotent-ish: skips a package if its folder already exists.
 #
@@ -30,15 +30,15 @@ step "1. Root monorepo (npm workspaces)"
 if [ ! -f package.json ]; then
   cat > package.json <<'JSON'
 {
-  "name": "taskflow",
+  "name": "boardstack",
   "private": true,
-  "workspaces": ["taskflow-api", "taskflow-web", "packages/*"],
+  "workspaces": ["boardstack-api", "boardstack-web", "packages/*"],
   "scripts": {
     "dev": "docker compose up",
-    "dev:api": "npm run dev -w taskflow-api",
-    "dev:web": "npm run dev -w taskflow-web",
-    "typecheck": "npm run typecheck -w taskflow-api && npm run typecheck -w taskflow-web",
-    "lint": "npm run lint -w taskflow-web && npm run lint -w taskflow-api"
+    "dev:api": "npm run dev -w boardstack-api",
+    "dev:web": "npm run dev -w boardstack-web",
+    "typecheck": "npm run typecheck -w boardstack-api && npm run typecheck -w boardstack-web",
+    "lint": "npm run lint -w boardstack-web && npm run lint -w boardstack-api"
   }
 }
 JSON
@@ -58,12 +58,12 @@ else
 fi
 
 # ------------------------------------------------------------------ 2. shared package (Zod)
-step "2. Shared package @taskflow/shared (official: npm init + zod)"
+step "2. Shared package @boardstack/shared (official: npm init + zod)"
 if [ ! -d packages/shared ]; then
   mkdir -p packages/shared/src/schemas
   ( cd packages/shared
     npm init -y >/dev/null
-    npm pkg set name="@taskflow/shared" type="module" main="src/index.ts" types="src/index.ts"
+    npm pkg set name="@boardstack/shared" type="module" main="src/index.ts" types="src/index.ts"
     npm pkg set exports["."]="./src/index.ts"
     npm install zod >/dev/null
     npm install --save-dev typescript >/dev/null
@@ -99,10 +99,10 @@ if [ ! -f docker-compose.yml ]; then
 services:
   db:
     image: postgres:16
-    container_name: taskflow-db
+    container_name: boardstack-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: taskflow
+      POSTGRES_DB: boardstack
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports: ["5432:5432"]
@@ -115,23 +115,23 @@ YML
 fi
 docker compose up -d db
 info "waiting for Postgres to accept connections..."
-until docker exec taskflow-db pg_isready -U postgres >/dev/null 2>&1; do sleep 1; done
+until docker exec boardstack-db pg_isready -U postgres >/dev/null 2>&1; do sleep 1; done
 # Non-superuser runtime role for RLS (idempotent)
-docker exec taskflow-db psql -U postgres -d taskflow -v ON_ERROR_STOP=0 -c \
+docker exec boardstack-db psql -U postgres -d boardstack -v ON_ERROR_STOP=0 -c \
   "DO \$\$ BEGIN
-     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='taskflow_app') THEN
-       CREATE ROLE taskflow_app WITH LOGIN PASSWORD 'app_password' NOBYPASSRLS;
+     IF NOT EXISTS (SELECT FROM pg_roles WHERE rolname='boardstack_app') THEN
+       CREATE ROLE boardstack_app WITH LOGIN PASSWORD 'app_password' NOBYPASSRLS;
      END IF;
    END \$\$;
-   GRANT CONNECT ON DATABASE taskflow TO taskflow_app;
-   GRANT USAGE, CREATE ON SCHEMA public TO taskflow_app;" >/dev/null
-info "Postgres up; role taskflow_app ready (NOBYPASSRLS)"
+   GRANT CONNECT ON DATABASE boardstack TO boardstack_app;
+   GRANT USAGE, CREATE ON SCHEMA public TO boardstack_app;" >/dev/null
+info "Postgres up; role boardstack_app ready (NOBYPASSRLS)"
 
 # ------------------------------------------------------------------ 4. Express 5 API + TypeScript
 step "4. Express 5 API (official: npm install express + TS)"
-if [ ! -d taskflow-api ]; then
-  mkdir -p taskflow-api/src/lib taskflow-api/src/middleware
-  ( cd taskflow-api
+if [ ! -d boardstack-api ]; then
+  mkdir -p boardstack-api/src/lib boardstack-api/src/middleware
+  ( cd boardstack-api
     npm init -y >/dev/null
     npm pkg set type="module"
     npm pkg set scripts.dev="tsx watch src/index.ts"
@@ -145,7 +145,7 @@ if [ ! -d taskflow-api ]; then
     npm install express cors helmet cookie-parser dotenv >/dev/null
     npm install --save-dev typescript tsx @types/node @types/express @types/cors @types/cookie-parser >/dev/null
   )
-  cat > taskflow-api/tsconfig.json <<'JSON'
+  cat > boardstack-api/tsconfig.json <<'JSON'
 {
   "compilerOptions": {
     "target": "esnext",
@@ -161,7 +161,7 @@ if [ ! -d taskflow-api ]; then
   "include": ["src", "prisma"]
 }
 JSON
-  cat > taskflow-api/src/index.ts <<'TS'
+  cat > boardstack-api/src/index.ts <<'TS'
 import express, { type Express, type Request, type Response } from "express";
 import cors from "cors";
 import helmet from "helmet";
@@ -179,24 +179,24 @@ app.get("/health", (_req: Request, res: Response) => res.json({ status: "ok" }))
 const port = Number(process.env.PORT ?? 4000);
 app.listen(port, () => console.log(`API listening on :${port}`));
 TS
-  cat > taskflow-api/.env <<'ENV'
+  cat > boardstack-api/.env <<'ENV'
 PORT=4000
 WEB_ORIGIN=http://localhost:3000
-DATABASE_URL="postgresql://taskflow_app:app_password@localhost:5432/taskflow?schema=public"
-DIRECT_URL="postgresql://postgres:postgres@localhost:5432/taskflow?schema=public"
+DATABASE_URL="postgresql://boardstack_app:app_password@localhost:5432/boardstack?schema=public"
+DIRECT_URL="postgresql://postgres:postgres@localhost:5432/boardstack?schema=public"
 AUTH0_DOMAIN=
 AUTH0_AUDIENCE=
 ENV
-  cp taskflow-api/.env taskflow-api/.env.example
+  cp boardstack-api/.env boardstack-api/.env.example
   info "Express API scaffolded"
 else
-  info "taskflow-api exists — skipping"
+  info "boardstack-api exists — skipping"
 fi
 
 # ------------------------------------------------------------------ 5. Prisma (official CLI)
 step "5. Prisma ORM (official: prisma init --datasource-provider postgresql)"
-if [ ! -f taskflow-api/prisma/schema.prisma ]; then
-  ( cd taskflow-api
+if [ ! -f boardstack-api/prisma/schema.prisma ]; then
+  ( cd boardstack-api
     npm install --save-dev prisma @types/pg >/dev/null
     npm install @prisma/client @prisma/adapter-pg pg >/dev/null
     # official init; sets datasource provider so no manual edit needed
@@ -207,7 +207,7 @@ if [ ! -f taskflow-api/prisma/schema.prisma ]; then
   )
   # pg-adapter client. Prisma 7's `prisma-client` generator outputs to src/generated/prisma,
   # so import PrismaClient from there (NOT "@prisma/client"). Runtime uses the app role.
-  cat > taskflow-api/src/lib/prisma.ts <<'TS'
+  cat > boardstack-api/src/lib/prisma.ts <<'TS'
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "../generated/prisma/client.js";
@@ -216,7 +216,7 @@ const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL });
 export const prisma = new PrismaClient({ adapter });
 TS
   # tenant DB middleware
-  cat > taskflow-api/src/middleware/with-tenant-db.ts <<'TS'
+  cat > boardstack-api/src/middleware/with-tenant-db.ts <<'TS'
 import { prisma } from "../lib/prisma.js";
 
 export async function withTenantDb(req: any, _res: any, next: any) {
@@ -233,8 +233,8 @@ export async function withTenantDb(req: any, _res: any, next: any) {
   }
 }
 TS
-  info "Prisma initialized. NEXT: add models to prisma/schema.prisma (from taskflow-data-model.md),"
-  info "then run:  cd taskflow-api && npx prisma migrate dev --name init && npx prisma generate"
+  info "Prisma initialized. NEXT: add models to prisma/schema.prisma (from boardstack-data-model.md),"
+  info "then run:  cd boardstack-api && npx prisma migrate dev --name init && npx prisma generate"
   info "Add RLS via: npx prisma migrate dev --create-only --name rls_policies  (paste SQL from SETUP.md §5.2)"
 else
   info "prisma already initialized — skipping"
@@ -242,10 +242,10 @@ fi
 
 # ------------------------------------------------------------------ 6. Next.js 16 (official create-next-app)
 step "6. Next.js + TypeScript + Tailwind + ESLint (official: create-next-app)"
-if [ ! -d taskflow-web ]; then
-  npx --yes create-next-app@latest taskflow-web \
+if [ ! -d boardstack-web ]; then
+  npx --yes create-next-app@latest boardstack-web \
     --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm --yes
-  ( cd taskflow-web
+  ( cd boardstack-web
     npm pkg set scripts.typecheck="tsc --noEmit"
     # data/state/form libs (official packages)
     npm install @tanstack/react-query zustand react-hook-form @hookform/resolvers zod >/dev/null
@@ -253,13 +253,13 @@ if [ ! -d taskflow-web ]; then
   )
   info "Next.js app created with Tailwind + TS + ESLint + App Router"
 else
-  info "taskflow-web exists — skipping"
+  info "boardstack-web exists — skipping"
 fi
 
 # ------------------------------------------------------------------ 7. shadcn/ui (official CLI)
 step "7. shadcn/ui (official: shadcn init + add)"
-if [ ! -f taskflow-web/components.json ]; then
-  ( cd taskflow-web
+if [ ! -f boardstack-web/components.json ]; then
+  ( cd boardstack-web
     # -d = defaults (template=next, preset=nova); -y skips confirmation. No --base-color in current CLI.
     npx --yes shadcn@latest init -d -y
     # Add components one-by-one so a renamed/missing name can't abort the whole batch.
@@ -278,8 +278,8 @@ step "✅ Bootstrap complete"
 cat <<'DONE'
 
 Next steps (see SETUP.md §5 and §9, PROGRESS.md Phase 1):
-  1. Add the full Prisma models from taskflow-data-model.md.
-  2. cd taskflow-api && npx prisma migrate dev --name init && npx prisma generate
+  1. Add the full Prisma models from boardstack-data-model.md.
+  2. cd boardstack-api && npx prisma migrate dev --name init && npx prisma generate
   3. Add the RLS migration (SETUP.md §5.2) and re-run migrate dev.
   4. Start everything:  npm run dev        (docker compose up: db + api + web)
      or individually:   npm run dev:api  /  npm run dev:web

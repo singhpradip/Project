@@ -1,6 +1,6 @@
-# TaskFlow — Project Progress Tracker
+# Boardstack — Project Progress Tracker
 
-**The single source of truth for what's done, in progress, and next.** Update this file as work advances. Companion to `requirements.md`, `taskflow-system-design.md`, and `taskflow-data-model.md`.
+**The single source of truth for what's done, in progress, and next.** Update this file as work advances. Companion to `requirements.md`, `boardstack-system-design.md`, and `boardstack-data-model.md`.
 
 | | |
 |---|---|
@@ -41,8 +41,8 @@
 ## Phase 0 — Planning & documentation ✅
 
 - [x] Choose project (multi-tenant PM SaaS)
-- [x] System design document (`taskflow-system-design.md`)
-- [x] Data model & data flow (`taskflow-data-model.md`)
+- [x] System design document (`boardstack-system-design.md`)
+- [x] Data model & data flow (`boardstack-data-model.md`)
 - [x] Requirements spec (`requirements.md`)
 - [x] Repo guidance (`CLAUDE.md`)
 - [x] Installation & setup flow (`SETUP.md`, from official docs)
@@ -56,7 +56,7 @@
 
 **Goal:** a runnable skeleton with auth, the tenant DB context, and RLS proven to work.
 
-- [ ] Monorepo scaffold (`taskflow-api`, `taskflow-web`, `packages/shared`) + workspaces
+- [ ] Monorepo scaffold (`boardstack-api`, `boardstack-web`, `packages/shared`) + workspaces
 - [ ] `docker-compose.yml` (Postgres + api + web) + `.env.example` for each app
 - [ ] Express app bootstrap (health endpoint, error envelope, request-id logger)
 - [ ] Prisma init + connect to Postgres; base `schema.prisma`

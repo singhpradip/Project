@@ -1,4 +1,4 @@
-# TaskFlow — System Design Document
+# Boardstack — System Design Document
 
 **A multi-tenant project & task management SaaS (Jira/Linear-lite)**
 
@@ -7,13 +7,13 @@
 | **Author** | Pradip Singh |
 | **Status** | Draft v1.0 |
 | **Date** | 2026-07-17 |
-| **Repos** | `taskflow-web` (Next.js), `taskflow-api` (Express) |
+| **Repos** | `boardstack-web` (Next.js), `boardstack-api` (Express) |
 
 ---
 
 ## 1. Overview
 
-TaskFlow is a B2B SaaS where companies ("organizations") sign up, create workspaces, invite teammates, and manage work across projects using Kanban boards, issues, and sprints. Every organization's data is fully isolated from every other organization's — this multi-tenant isolation is the architectural core of the project.
+Boardstack is a B2B SaaS where companies ("organizations") sign up, create workspaces, invite teammates, and manage work across projects using Kanban boards, issues, and sprints. Every organization's data is fully isolated from every other organization's — this multi-tenant isolation is the architectural core of the project.
 
 The system is split into two independently deployable applications: a **Next.js frontend** and an **Express backend**, communicating over a versioned REST API. Authentication and organization membership are delegated to **Auth0** (using its native Organizations feature), and tenant data isolation is enforced at the database layer with **PostgreSQL Row-Level Security (RLS)**.
 
@@ -59,7 +59,7 @@ The system is split into two independently deployable applications: a **Next.js 
 
 ```mermaid
 flowchart TB
-    subgraph Client["Browser (acme.taskflow.com)"]
+    subgraph Client["Browser (acme.boardstack.com)"]
         NX["Next.js App Router<br/>React + Tailwind + shadcn/ui<br/>React Query · Zustand · RHF+Zod"]
     end
 
@@ -67,7 +67,7 @@ flowchart TB
         A0["Universal Login<br/>Organizations<br/>Roles & Permissions"]
     end
 
-    subgraph API["Express API (api.taskflow.com)"]
+    subgraph API["Express API (api.boardstack.com)"]
         MW["Middleware pipeline<br/>JWT verify → tenant resolve → RBAC → set RLS context"]
         SVC["Controllers → Services"]
     end
@@ -105,7 +105,7 @@ All tenants share one database and one schema. Every tenant-scoped table carries
 
 ### 4.2 Tenant resolution — subdomain
 
-Each organization gets a subdomain: `acme.taskflow.com`. The flow:
+Each organization gets a subdomain: `acme.boardstack.com`. The flow:
 
 1. The Next.js app reads the subdomain from the host header (middleware) and knows which org the user intends to use.
 2. On login, Auth0 issues a token scoped to a specific organization (`org_id` claim).
@@ -125,11 +125,11 @@ Isolation is enforced at three layers so a single mistake never leaks data:
 
 ### 5.1 Why Auth0 Organizations
 
-Auth0's **Organizations** feature is purpose-built for B2B multi-tenant apps. Each TaskFlow organization maps to an Auth0 Organization. Auth0 handles the hard parts — login UI, password reset, MFA, social login, invitations, and per-org membership — so the app's backend focuses on domain logic and data isolation.
+Auth0's **Organizations** feature is purpose-built for B2B multi-tenant apps. Each Boardstack organization maps to an Auth0 Organization. Auth0 handles the hard parts — login UI, password reset, MFA, social login, invitations, and per-org membership — so the app's backend focuses on domain logic and data isolation.
 
 ### 5.2 Concepts mapping
 
-| TaskFlow concept | Auth0 concept |
+| Boardstack concept | Auth0 concept |
 |---|---|
 | Organization (tenant) | Auth0 Organization |
 | User account | Auth0 User |
@@ -142,11 +142,11 @@ Auth0's **Organizations** feature is purpose-built for B2B multi-tenant apps. Ea
 ```mermaid
 sequenceDiagram
     participant U as User
-    participant W as Next.js (acme.taskflow.com)
+    participant W as Next.js (acme.boardstack.com)
     participant A as Auth0
     participant API as Express API
 
-    U->>W: Visit acme.taskflow.com
+    U->>W: Visit acme.boardstack.com
     W->>A: Redirect to Universal Login (organization=acme)
     U->>A: Authenticate (pw / social / MFA)
     A-->>W: Redirect back with code
@@ -614,20 +614,20 @@ services:
   db:
     image: postgres:16
     environment:
-      POSTGRES_DB: taskflow
+      POSTGRES_DB: boardstack
       POSTGRES_PASSWORD: postgres
     ports: ["5432:5432"]
     volumes: ["pgdata:/var/lib/postgresql/data"]
 
   api:
-    build: ./taskflow-api
-    env_file: ./taskflow-api/.env
+    build: ./boardstack-api
+    env_file: ./boardstack-api/.env
     ports: ["4000:4000"]
     depends_on: [db]
 
   web:
-    build: ./taskflow-web
-    env_file: ./taskflow-web/.env
+    build: ./boardstack-web
+    env_file: ./boardstack-web/.env
     ports: ["3000:3000"]
     depends_on: [api]
 
@@ -651,12 +651,12 @@ One command (`docker compose up`) brings up Postgres, the API, and the web app w
 Two repos (or one monorepo with a shared package). Monorepo layout shown for the shared Zod schemas:
 
 ```
-taskflow/
+boardstack/
 ├── packages/
 │   └── shared/                 # Zod schemas + inferred TS types (used by web & api)
 │       └── src/schemas/
 │
-├── taskflow-api/               # Express backend
+├── boardstack-api/               # Express backend
 │   ├── src/
 │   │   ├── index.ts            # app bootstrap
 │   │   ├── config/             # env, auth0, db
@@ -673,7 +673,7 @@ taskflow/
 │   ├── Dockerfile
 │   └── .env.example
 │
-└── taskflow-web/               # Next.js frontend
+└── boardstack-web/               # Next.js frontend
     ├── src/
     │   ├── app/                # App Router
     │   │   ├── (auth)/         # login callbacks

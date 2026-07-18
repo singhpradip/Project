@@ -1,10 +1,10 @@
 services:
   db:
     image: postgres:16
-    container_name: taskflow-db
+    container_name: boardstack-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: taskflow
+      POSTGRES_DB: boardstack
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports: ["5432:5432"]

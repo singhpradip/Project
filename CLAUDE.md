@@ -1,13 +1,13 @@
 # CLAUDE.md
 
-Guidance for Claude Code when working in the **TaskFlow** repo — a multi-tenant project & task management SaaS.
+Guidance for Claude Code when working in the **Boardstack** repo — a multi-tenant project & task management SaaS.
 
 ## Project documents (read for context)
 
 Always consult these before non-trivial work; they are the source of truth:
 
-- **`taskflow-system-design.md`** — architecture, multi-tenancy strategy, Auth0, RLS, API design, deployment, folder structure.
-- **`taskflow-data-model.md`** — full entity catalog with attributes/constraints, relationships, entity interactions, user data flows, and state machines.
+- **`boardstack-system-design.md`** — architecture, multi-tenancy strategy, Auth0, RLS, API design, deployment, folder structure.
+- **`boardstack-data-model.md`** — full entity catalog with attributes/constraints, relationships, entity interactions, user data flows, and state machines.
 - **`requirements.md`** — end-to-end functional (`FR-*`) and non-functional (`NFR-*`) requirements with acceptance criteria.
 - **`SETUP.md`** — installation & project setup flow (monorepo, Docker Postgres, Express 5, Prisma, Next.js, shadcn/ui) built from the official docs.
 - **`PROGRESS.md`** — the project task tracker: phases, tasks, current status, and exit criteria.
@@ -30,8 +30,8 @@ Do not consider a piece of work complete until `PROGRESS.md` reflects it.
 Multi-tenant B2B SaaS (Jira/Linear-lite). Companies ("organizations") sign up, invite teammates, and manage work on Kanban boards. **Every organization's data is fully isolated.** Tenant isolation is the single most important invariant in this codebase — never write code that could leak data across organizations.
 
 Two deployables in a monorepo:
-- `taskflow-api/` — Express backend (REST, business logic, DB).
-- `taskflow-web/` — Next.js frontend (App Router).
+- `boardstack-api/` — Express backend (REST, business logic, DB).
+- `boardstack-web/` — Next.js frontend (App Router).
 - `packages/shared/` — Zod schemas + inferred TS types, imported by **both**.
 
 ## Tech stack (do not substitute without asking)
@@ -79,7 +79,7 @@ Keep the pipeline order: `router → requestContext → authenticate → resolve
 - **Ordering:** issues use a fractional `position` (double) — never renumber a whole column.
 - **Pagination:** cursor-based (`?limit=&cursor=`).
 - **Naming:** files `kebab-case`, components `PascalCase`, hooks `useX`, DB tables/columns `snake_case`.
-- **Imports:** shared types/schemas from `@taskflow/shared`, not relative cross-package paths.
+- **Imports:** shared types/schemas from `@boardstack/shared`, not relative cross-package paths.
 - **Components:** compose shadcn/ui primitives in `components/ui`; domain components in `components/domain`.
 
 ## Commands
@@ -88,13 +88,13 @@ Keep the pipeline order: `router → requestContext → authenticate → resolve
 # From repo root
 docker compose up            # Postgres + api + web (local dev)
 
-# API (taskflow-api/)
+# API (boardstack-api/)
 npm run dev                  # start Express in watch mode
 npm run test                 # unit + integration (incl. RLS isolation tests)
 npx prisma migrate dev       # create/apply migration (dev)
 npx prisma generate          # regenerate client after schema change
 
-# Web (taskflow-web/)
+# Web (boardstack-web/)
 npm run dev                  # Next.js dev server
 npm run build                # production build
 npm run lint                 # ESLint

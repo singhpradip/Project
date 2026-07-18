@@ -1,6 +1,6 @@
-# TaskFlow — Data Model, Entities & Data Flow
+# Boardstack — Data Model, Entities & Data Flow
 
-**Companion to `taskflow-system-design.md`. Detailed entity attributes, relationships, interactions, user journeys, and data flows.**
+**Companion to `boardstack-system-design.md`. Detailed entity attributes, relationships, interactions, user journeys, and data flows.**
 
 | | |
 |---|---|
@@ -12,7 +12,7 @@
 
 ## 1. How to read this document
 
-This document zooms in on **data**: every entity, every attribute (with type, constraints, and meaning), how the entities relate, and how data moves through the system when users act. It assumes the architecture in `taskflow-system-design.md` (multi-tenant, shared-schema Postgres with RLS, Express API, Next.js frontend, Auth0).
+This document zooms in on **data**: every entity, every attribute (with type, constraints, and meaning), how the entities relate, and how data moves through the system when users act. It assumes the architecture in `boardstack-system-design.md` (multi-tenant, shared-schema Postgres with RLS, Express API, Next.js frontend, Auth0).
 
 Two invariants apply to *every* tenant-scoped entity below:
 
@@ -64,7 +64,7 @@ The root of every data partition. Everything else hangs off an organization.
 | `id` | UUID | PK, DEF `gen_random_uuid()` | Internal tenant identifier used everywhere as `organization_id`. |
 | `auth0_org_id` | TEXT | UQ, NN | Links to the Auth0 Organization; how tokens map to this tenant. |
 | `name` | TEXT | NN | Display name, e.g. "Acme Inc". |
-| `slug` | TEXT | UQ, NN | Subdomain, e.g. `acme` → `acme.taskflow.com`. Lowercase, URL-safe. |
+| `slug` | TEXT | UQ, NN | Subdomain, e.g. `acme` → `acme.boardstack.com`. Lowercase, URL-safe. |
 | `plan` | TEXT | NN, DEF `'free'` | Billing tier placeholder (`free`/`pro`) — future use. |
 | `created_at` | TIMESTAMPTZ | NN, DEF `now()` | Provisioned timestamp. |
 
@@ -373,7 +373,7 @@ sequenceDiagram
     API->>DB: INSERT default project + board_columns + labels
     DB-->>API: created
     API-->>W: org + default project
-    W-->>U: Redirect to acme.taskflow.com board
+    W-->>U: Redirect to acme.boardstack.com board
 ```
 
 **Entities written:** `organization`, `app_user`, `membership`, `project`, `board_column`, `label`.
@@ -429,7 +429,7 @@ sequenceDiagram
 3. Service, in one transaction: updates `issue.status` + `issue.position`, appends `activity(verb='moved', meta:{from,to})`.
 4. On success, React Query reconciles; on error, it rolls back to the previous board.
 
-**Entities:** `issue` (status, position), `activity`. See `taskflow-system-design.md` §10 for the full sequence diagram.
+**Entities:** `issue` (status, position), `activity`. See `boardstack-system-design.md` §10 for the full sequence diagram.
 
 ### 6.5 Comment with a mention
 

@@ -1,6 +1,6 @@
-# TaskFlow — Installation & Project Setup Flow
+# Boardstack — Installation & Project Setup Flow
 
-**Step-by-step setup for the TaskFlow monorepo, built from the official docs for Node/Express 5, Prisma, PostgreSQL, Next.js, and shadcn/ui.** Follow top to bottom; each step is idempotent. Companion to `taskflow-system-design.md`, `taskflow-data-model.md`, `requirements.md`, and `PROGRESS.md`.
+**Step-by-step setup for the Boardstack monorepo, built from the official docs for Node/Express 5, Prisma, PostgreSQL, Next.js, and shadcn/ui.** Follow top to bottom; each step is idempotent. Companion to `boardstack-system-design.md`, `boardstack-data-model.md`, `requirements.md`, and `PROGRESS.md`.
 
 > Sources (read if you need detail):
 > Next.js — https://nextjs.org/docs/app/getting-started/installation ·
@@ -37,10 +37,10 @@ docker compose version
 
 ## 1. Create the monorepo
 
-We use a single repo with npm workspaces: two deployables (`taskflow-api`, `taskflow-web`) plus a shared package (`packages/shared`) for Zod schemas/types.
+We use a single repo with npm workspaces: two deployables (`boardstack-api`, `boardstack-web`) plus a shared package (`packages/shared`) for Zod schemas/types.
 
 ```bash
-mkdir taskflow && cd taskflow
+mkdir boardstack && cd boardstack
 git init
 ```
 
@@ -48,16 +48,16 @@ Create the root `package.json`:
 
 ```json
 {
-  "name": "taskflow",
+  "name": "boardstack",
   "private": true,
-  "workspaces": ["taskflow-api", "taskflow-web", "packages/*"],
+  "workspaces": ["boardstack-api", "boardstack-web", "packages/*"],
   "scripts": {
     "dev": "docker compose up",
-    "dev:api": "npm run dev -w taskflow-api",
-    "dev:web": "npm run dev -w taskflow-web",
-    "build": "npm run build -w taskflow-web && npm run build -w taskflow-api",
-    "lint": "npm run lint -w taskflow-web && npm run lint -w taskflow-api",
-    "typecheck": "npm run typecheck -w taskflow-web && npm run typecheck -w taskflow-api"
+    "dev:api": "npm run dev -w boardstack-api",
+    "dev:web": "npm run dev -w boardstack-web",
+    "build": "npm run build -w boardstack-web && npm run build -w boardstack-api",
+    "lint": "npm run lint -w boardstack-web && npm run lint -w boardstack-api",
+    "typecheck": "npm run typecheck -w boardstack-web && npm run typecheck -w boardstack-api"
   }
 }
 ```
@@ -77,7 +77,7 @@ generated/
 Create folders:
 
 ```bash
-mkdir -p taskflow-api taskflow-web packages/shared
+mkdir -p boardstack-api boardstack-web packages/shared
 ```
 
 ---
@@ -98,7 +98,7 @@ Set `packages/shared/package.json`:
 
 ```json
 {
-  "name": "@taskflow/shared",
+  "name": "@boardstack/shared",
   "version": "0.0.0",
   "type": "module",
   "main": "src/index.ts",
@@ -151,17 +151,17 @@ Create `docker-compose.yml` at the repo root (start with just the database while
 services:
   db:
     image: postgres:16
-    container_name: taskflow-db
+    container_name: boardstack-db
     restart: unless-stopped
     environment:
-      POSTGRES_DB: taskflow
+      POSTGRES_DB: boardstack
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
     ports:
       - "5432:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-      - ./taskflow-api/prisma/init:/docker-entrypoint-initdb.d # optional bootstrap SQL
+      - ./boardstack-api/prisma/init:/docker-entrypoint-initdb.d # optional bootstrap SQL
 
 volumes:
   pgdata:
@@ -179,29 +179,29 @@ docker compose ps          # db should be healthy
 The API must connect as a role **without** `BYPASSRLS`/superuser so RLS always applies. Create it once:
 
 ```bash
-docker exec -it taskflow-db psql -U postgres -d taskflow -c "
-  CREATE ROLE taskflow_app WITH LOGIN PASSWORD 'app_password' NOBYPASSRLS;
-  GRANT CONNECT ON DATABASE taskflow TO taskflow_app;
-  GRANT USAGE, CREATE ON SCHEMA public TO taskflow_app;
+docker exec -it boardstack-db psql -U postgres -d boardstack -c "
+  CREATE ROLE boardstack_app WITH LOGIN PASSWORD 'app_password' NOBYPASSRLS;
+  GRANT CONNECT ON DATABASE boardstack TO boardstack_app;
+  GRANT USAGE, CREATE ON SCHEMA public TO boardstack_app;
 "
 ```
 
-> Migrations may run as `postgres` (owner), while the running API connects as `taskflow_app`. This keeps RLS honest at runtime.
+> Migrations may run as `postgres` (owner), while the running API connects as `boardstack_app`. This keeps RLS honest at runtime.
 
 ---
 
-## 4. Express 5 API (`taskflow-api`)
+## 4. Express 5 API (`boardstack-api`)
 
 Based on the Express 5 install guide, using TypeScript.
 
 ```bash
-cd taskflow-api
+cd boardstack-api
 npm init -y
 npm install express cors helmet cookie-parser dotenv
 npm install --save-dev typescript tsx @types/node @types/express @types/cors @types/cookie-parser
 ```
 
-Create `taskflow-api/tsconfig.json` (Node-style TS, strict):
+Create `boardstack-api/tsconfig.json` (Node-style TS, strict):
 
 ```json
 {
@@ -220,11 +220,11 @@ Create `taskflow-api/tsconfig.json` (Node-style TS, strict):
 }
 ```
 
-Set `taskflow-api/package.json` scripts (`type: module`):
+Set `boardstack-api/package.json` scripts (`type: module`):
 
 ```json
 {
-  "name": "taskflow-api",
+  "name": "boardstack-api",
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/index.ts",
@@ -239,7 +239,7 @@ Set `taskflow-api/package.json` scripts (`type: module`):
 }
 ```
 
-Create a minimal server `taskflow-api/src/index.ts`:
+Create a minimal server `boardstack-api/src/index.ts`:
 
 ```ts
 import express, { type Express, type Request, type Response } from "express";
@@ -263,14 +263,14 @@ const port = Number(process.env.PORT ?? 4000);
 app.listen(port, () => console.log(`API listening on :${port}`));
 ```
 
-Create `taskflow-api/.env` (and a committed `.env.example` without secrets):
+Create `boardstack-api/.env` (and a committed `.env.example` without secrets):
 
 ```dotenv
 PORT=4000
 WEB_ORIGIN=http://localhost:3000
 # Migrations run as owner; runtime app connects as the non-superuser role:
-DATABASE_URL="postgresql://taskflow_app:app_password@localhost:5432/taskflow?schema=public"
-DIRECT_URL="postgresql://postgres:postgres@localhost:5432/taskflow?schema=public"
+DATABASE_URL="postgresql://boardstack_app:app_password@localhost:5432/boardstack?schema=public"
+DIRECT_URL="postgresql://postgres:postgres@localhost:5432/boardstack?schema=public"
 # Auth0 (fill from your Auth0 tenant — see system-design §5)
 AUTH0_DOMAIN=
 AUTH0_AUDIENCE=
@@ -286,12 +286,12 @@ curl http://localhost:4000/health   # {"status":"ok"}
 
 ---
 
-## 5. Prisma + PostgreSQL (in `taskflow-api`)
+## 5. Prisma + PostgreSQL (in `boardstack-api`)
 
 Following the Prisma quickstart, adapted for our **local Docker Postgres** (not managed Prisma Postgres). We use the node-postgres driver adapter.
 
 ```bash
-# still in taskflow-api
+# still in boardstack-api
 npm install --save-dev prisma @types/pg
 npm install @prisma/client @prisma/adapter-pg pg
 npx prisma init
@@ -299,7 +299,7 @@ npx prisma init
 
 `prisma init` scaffolds `prisma/schema.prisma`, `prisma.config.ts`, and adds `DATABASE_URL` to `.env` (we already set ours — keep the Docker URL).
 
-Edit `prisma/schema.prisma` — set the datasource to PostgreSQL and add the first tenant models. (Full schema comes from `taskflow-data-model.md`; start small.)
+Edit `prisma/schema.prisma` — set the datasource to PostgreSQL and add the first tenant models. (Full schema comes from `boardstack-data-model.md`; start small.)
 
 ```prisma
 generator client {
@@ -375,7 +375,7 @@ npx prisma generate
 
 ### 5.1 Instantiate Prisma Client with the pg adapter
 
-`taskflow-api/src/lib/prisma.ts`:
+`boardstack-api/src/lib/prisma.ts`:
 
 ```ts
 import "dotenv/config";
@@ -412,9 +412,9 @@ CREATE POLICY tenant_isolation ON membership
   WITH CHECK (organization_id = current_setting('app.current_org')::uuid);
 
 -- Grant table privileges to the runtime role (RLS still restricts rows)
-GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO taskflow_app;
+GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO boardstack_app;
 ALTER DEFAULT PRIVILEGES IN SCHEMA public
-  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO taskflow_app;
+  GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO boardstack_app;
 ```
 
 Apply:
@@ -425,7 +425,7 @@ npx prisma migrate dev
 
 ### 5.3 Tenant DB middleware (sets the org context per request)
 
-`taskflow-api/src/middleware/with-tenant-db.ts` (simplified):
+`boardstack-api/src/middleware/with-tenant-db.ts` (simplified):
 
 ```ts
 import { prisma } from "../lib/prisma.js";
@@ -445,17 +445,17 @@ export async function withTenantDb(req, res, next) {
 }
 ```
 
-> This is the heart of isolation: `SET LOCAL` is transaction-scoped, so a pooled connection can't leak one tenant's context into another's request. See `taskflow-system-design.md` §8.1.
+> This is the heart of isolation: `SET LOCAL` is transaction-scoped, so a pooled connection can't leak one tenant's context into another's request. See `boardstack-system-design.md` §8.1.
 
 ---
 
-## 6. Next.js 16 web app (`taskflow-web`)
+## 6. Next.js 16 web app (`boardstack-web`)
 
 From the Next.js install guide, using the App Router with TypeScript, Tailwind, ESLint, `src/`, and the `@/*` alias.
 
 ```bash
 cd ..   # repo root
-npx create-next-app@latest taskflow-web \
+npx create-next-app@latest boardstack-web \
   --typescript --tailwind --eslint --app --src-dir --import-alias "@/*" --use-npm
 ```
 
@@ -464,11 +464,11 @@ npx create-next-app@latest taskflow-web \
 Run it once to confirm:
 
 ```bash
-cd taskflow-web
+cd boardstack-web
 npm run dev        # http://localhost:3000
 ```
 
-Add `typecheck` to `taskflow-web/package.json` scripts:
+Add `typecheck` to `boardstack-web/package.json` scripts:
 
 ```json
 { "scripts": { "typecheck": "tsc --noEmit" } }
@@ -508,16 +508,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 }
 ```
 
-Use the shared package (already linked by workspaces): `import { createIssueSchema } from "@taskflow/shared";`
+Use the shared package (already linked by workspaces): `import { createIssueSchema } from "@boardstack/shared";`
 
 ---
 
-## 7. shadcn/ui (in `taskflow-web`)
+## 7. shadcn/ui (in `boardstack-web`)
 
 From the shadcn install guide (Next.js path). Tailwind is already set up by `create-next-app`.
 
 ```bash
-# in taskflow-web
+# in boardstack-web
 npx shadcn@latest init
 ```
 
@@ -538,7 +538,7 @@ Quick check — drop a `<Button>` on the home page, run `npm run dev`, confirm i
 
 Add Dockerfiles and extend `docker-compose.yml` so `docker compose up` runs everything.
 
-`taskflow-api/Dockerfile`:
+`boardstack-api/Dockerfile`:
 
 ```dockerfile
 FROM node:22-alpine
@@ -550,7 +550,7 @@ EXPOSE 4000
 CMD ["npm", "run", "dev"]
 ```
 
-`taskflow-web/Dockerfile`:
+`boardstack-web/Dockerfile`:
 
 ```dockerfile
 FROM node:22-alpine
@@ -566,14 +566,14 @@ Extend `docker-compose.yml`:
 
 ```yaml
   api:
-    build: ./taskflow-api
-    env_file: ./taskflow-api/.env
+    build: ./boardstack-api
+    env_file: ./boardstack-api/.env
     ports: ["4000:4000"]
     depends_on: [db]
 
   web:
-    build: ./taskflow-web
-    env_file: ./taskflow-web/.env.local
+    build: ./boardstack-web
+    env_file: ./boardstack-web/.env.local
     ports: ["3000:3000"]
     depends_on: [api]
 ```
@@ -588,12 +588,12 @@ docker compose up --build
 
 Run these before declaring the skeleton done (maps to PROGRESS Phase 1 exit criteria):
 
-- [ ] `docker compose up -d db` → DB healthy; `taskflow_app` role exists and is `NOBYPASSRLS`.
-- [ ] `npm run dev -w taskflow-api` → `GET /health` returns `{"status":"ok"}`.
+- [ ] `docker compose up -d db` → DB healthy; `boardstack_app` role exists and is `NOBYPASSRLS`.
+- [ ] `npm run dev -w boardstack-api` → `GET /health` returns `{"status":"ok"}`.
 - [ ] `npx prisma migrate dev` applies cleanly; `npx prisma studio` shows the tables.
 - [ ] RLS migration applied; policies exist on tenant tables.
-- [ ] `npm run dev -w taskflow-web` → home page renders with a styled shadcn `<Button>`.
-- [ ] `@taskflow/shared` imports resolve in both api and web.
+- [ ] `npm run dev -w boardstack-web` → home page renders with a styled shadcn `<Button>`.
+- [ ] `@boardstack/shared` imports resolve in both api and web.
 - [ ] `npm run typecheck` and `npm run lint` pass in both packages.
 - [ ] (Phase 1 gate) RLS isolation integration test proves cross-tenant read/write is blocked.
 
@@ -605,16 +605,16 @@ Run these before declaring the skeleton done (maps to PROGRESS Phase 1 exit crit
 # Database
 docker compose up -d db          # start Postgres
 docker compose down              # stop everything
-docker exec -it taskflow-db psql -U postgres -d taskflow   # psql shell
+docker exec -it boardstack-db psql -U postgres -d boardstack   # psql shell
 
-# API (taskflow-api/)
+# API (boardstack-api/)
 npm run dev                      # tsx watch
 npm run prisma:migrate           # prisma migrate dev
 npm run prisma:generate          # regenerate client
 npm run prisma:studio            # visual DB editor
 npm run typecheck                # tsc --noEmit
 
-# Web (taskflow-web/)
+# Web (boardstack-web/)
 npm run dev                      # Next.js (Turbopack) on :3000
 npm run build                    # production build
 npm run lint                     # ESLint
